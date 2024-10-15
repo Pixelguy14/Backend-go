@@ -1,8 +1,9 @@
 package services
 
 import (
-	"backend-go/app/models"
-	"backend-go/app/repositories"
+	"Backend-go/app/models"
+	"Backend-go/app/repositories"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,19 +46,19 @@ func (s *UserService) isNameDuplicated(nombre, apaterno, amaterno string) (bool,
 }
 
 func(s *UserService) CreateUser(user models.Usuario) error {
-	isDuplicated, err != s.isUserDuplicated(user.Usuario)
+	isDuplicated, err != s.Repo.GetUserByUsername()(user.Usuario)
 	if err != nil {
 		return err
 	}
-	if isDuplicated {
-		return errors.New("El usuario ya existe")
+	if isDuplicated != nil {
+		return errors.New("el usuario ya existe")
 	}
 	isNameDuplicated, err := s.isNameDuplicated(user.Nombre, user.Apaterno, user.Amaterno)
 	if err != nil {
 		return err
 	}
 	if isNameDuplicated {
-		return errors.New("El nombre ya existe")
+		return errors.New("el nombre completo ya existe")
 	}
 	
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),bcrypt.DefaultCost)
@@ -66,10 +67,56 @@ func(s *UserService) CreateUser(user models.Usuario) error {
 	}
 	user.Password = string(hashedPassword)
 
-	user.Imagen = "default.png"
-	err = s.Repo.CreateUser(user)
+	return s.Repo.CreateUser(user)
+}
+
+func (s *UserService) UpdateUser(id string, user models.Usuario) error {
+	userID, err := s.Repo.GetUserByID(id)
 	if err != nil {
 		return err
 	}
-	return nil
+	if userID == nil {
+		return errors.New("usuario no encontrado")
+	}
+	userID.Nombre = user.Nombre
+	userID.Apaterno = user.Apaterno
+	userID.Amaterno = user.Amaterno
+	userID.Direccion = user.Direccion
+	userID.Telefono = user.Telefono
+	userID.Ciudad = user.Ciudad
+	userID.Estado = user.Estado
+	userID.Rol = user.Rol
+	userID.Imagen = user.Imagen
+
+	if user.Password != ""  {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),bcrypt.DefaultCost)
+		if err != nil {
+			return nil
+		}
+		userID.password = string(hashedPassword)	
+	}
+	return s.Repo.UpdateUser(id, *userID)
+}
+
+func (s *UserService) DeleteUser(id string) error {
+	userID, err := s.Repo.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+	if userID == nil {
+		return errors.New("usuario no encontrado")
+	}
+	return s.Repo.DeleteUser(id)
+}
+
+func (s *UserService) GetUserByID(id string) (*models.Usuario, error) {
+	return s.Repo.GetUserByID(id)
+}
+
+func (s *UserService) GetUserByUsername(username string) (*models.Usuario, error) {
+	return s.Repo.GetUserByUsername(username)
+}
+
+func (s *UserService) GetUserByRol(rol string) ([]models.Usuario, error) {
+	return s.Repo.GetUserByRol(rol)
 }

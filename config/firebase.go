@@ -9,11 +9,11 @@ import (
 	"google.golang.org/api/option"
 )
 
-var FirebaseApp *Firebase.App
+var FirebaseApp *firebase.App
 
 func InitializeFirebaseApp() {
 	opt := option.WithCredentialsFile("./firebaseServiceAccount.json")
-	app, err := firebase.NewApp(context.Background(), nill, opt) //si funciona se guarda en app, si no, se guarda en err
+	app, err := firebase.NewApp(context.Background(), nil, opt) //si funciona se guarda en app, si no, se guarda en err
 	if err != nil {
 		log.Fatalf("Error al inicializar Firebase app: %v", err)
 	}

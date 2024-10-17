@@ -71,8 +71,7 @@ func (r *UserRepository) GetUserByUsername(username string) (*models.Usuario, er
 		return nil, err
 	}
 	defer client.Close()
-	doc, err := client.Collection
-	("usuarios_lenguajes").Where("usuario", "==", username).Documents(ctx)
+	doc, err := client.Collection("usuarios_lenguajes").Where("usuario", "==", username).Documents(ctx)
 	doc, err := iter.Next()
 	if err == iterator.Done {
 		return nil, nil
